@@ -25,7 +25,7 @@ moles = dict(zip(idList, smilesList))
 with open(os.path.join(path, title + '.smi'), 'w') as smilesFile:
     pass
     for molportId in moles:
-        smilesFile.write(moles.get(molportId) + ' ' + molportId + '\n')
+        smilesFile.write(moles[molportId] + ' ' + molportId + '\n')
 
 
 
