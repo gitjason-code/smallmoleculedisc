@@ -1,24 +1,24 @@
 import os
+import pandas as pd
 
 csvFile = input('CSV file path: ')
-csvFile = csvFile.translate({ord('"'): None})
+csvFile = csvFile.strip('\"')
 
 path = input('File destination: ')
 path = path.strip('\"')
 
 title = input('Output file title: ')
 
-import pandas as pd
 data = pd.read_csv(csvFile)
 
-smilesList = []
-for smiles in data.loc[:, 'SMILES']:
-    splitSmiles = smiles.split(' ')
-    smilesList.append(splitSmiles[0])
-
+i = 0
 idList = []
-for molportId in data.loc[:, 'MolPort Id']:
-    idList.append(molportId)
+smilesList = []
+
+for smiles in data.loc[:, 'SMILES']:
+    smilesList.append(smiles.split(' ')[0])
+    idList.append(data.loc[:, 'MolPort Id'][i])
+    i += 1
 
 moles = dict(zip(idList, smilesList))
 
