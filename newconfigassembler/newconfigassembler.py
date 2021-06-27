@@ -17,11 +17,8 @@ def libraryconfiggenerator():
             fileList.append(filename)
 
 def batchFilegenerator():
-    batchFileinput = input('Batch file name: ')
-    batchFile = batchFileinput + '.bat'
-
     for file in fileList:
-        with open(os.path.join(filesource, batchFile), 'a') as batch:
+        with open(os.path.join(filesource, 'start.bat'), 'a') as batch:
             pass
             batch.write(r'"C:\Program Files (x86)\The Scripps Research Institute\Vina\vina.exe" --config ' + file.split('.pdbqt')[0] + '_config' + '.txt' + '\n')
 
