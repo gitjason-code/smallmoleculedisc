@@ -18,7 +18,7 @@ def libraryconfiggenerator():
 
 def batchFilegenerator():
     batchFileinput = input('Batch file name: ')
-    batchFile = batchFileinput + '.txt'
+    batchFile = batchFileinput + '.bat'
 
     for file in fileList:
         with open(os.path.join(filesource, batchFile), 'a') as batch:
