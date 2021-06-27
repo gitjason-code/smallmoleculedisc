@@ -24,6 +24,7 @@ def path_input():
 def csv_converter():
     global id_list
     global smiles_list
+    global moles
 
     data = pd.read_csv(csv_file)
 
@@ -43,12 +44,12 @@ def csv_converter():
 
         i += 1
 
+    moles = dict(zip(id_list, smiles_list))
+
     smiles_writer()
 
 
 def smiles_writer():
-    moles = dict(zip(id_list, smiles_list))
-
     with open(os.path.join(smiles_path, f_name + '.smi'), 'w') as smiles_file:
         pass
         for molport_id in moles:
