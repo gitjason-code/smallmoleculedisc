@@ -1,6 +1,5 @@
 import os
 
-
 def fileRangelist():
     global fileRange
     fileRange = []
@@ -32,9 +31,9 @@ def receptorLigandassembler():
         ligandList.append(ligandFile)
 
 
-def batchFilegenerator(fileType='.txt'):
+def batchFilegenerator():
     batchFileinput = input('Batch file name: ')
-    batchFile = batchFileinput + fileType
+    batchFile = batchFileinput + '.txt'
 
     for file in fileList:
         with open(os.path.join(path, batchFile), 'a') as batch:
@@ -93,8 +92,8 @@ def configFileassembler():
             configFile.write('\n')
             configFile.write('out = ' + ligand + '_' + outputNumber + '_out' + '.pdbqt' + '\n')
 
-    proceed = input('Would you like to create a batch file as well? (yes or no): ')
-    if proceed == 'yes':
+    proceed = input('Would you like to create a batch file as well? (y or n): ')
+    if proceed == 'y':
         batchFilegenerator()
     else:
         return

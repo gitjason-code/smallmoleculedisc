@@ -16,8 +16,15 @@ idList = []
 smilesList = []
 
 for smiles in data.loc[:, 'SMILES']:
-    smilesList.append(smiles.split(' ')[0])
-    idList.append(data.loc[:, 'MolPort Id'][i])
+    try:
+        if len(str(smiles)) > 1:
+            smilesList.append(smiles.split(' ')[0])
+            idList.append(data.loc[:, 'MolPort Id'][i])
+        else:
+            print(data.loc[:, 'MolPort Id'][i] + ' could not be added as SMILES string.')
+    except AttributeError:
+        print(data.loc[:, 'MolPort Id'][i] + ' could not be added as SMILES string.')
+
     i += 1
 
 moles = dict(zip(idList, smilesList))
