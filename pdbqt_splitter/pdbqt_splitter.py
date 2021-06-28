@@ -1,5 +1,4 @@
 import os
-import random
 
 while True:
     pdbqt_file = input('PDBQT file path: ')
@@ -16,40 +15,29 @@ with open(pdbqt_file) as f:
     content = f.readlines()
 
 start = 0
-start_list = []
-file_list = []
+line_name_array = []
 
 for line in content:
     if 'MODEL' in line:
-        start_list.append(start)
+        start_num = start
     elif 'Name' in line:
-        name = line.split(' ')[4].replace('\n', '')
-        if name in file_list:
-            file_list.append(name + '_variant' + str(random.randint(0, 100)))
-        else:
-            file_list.append(name)
-
+        mol_name = line.split(' ')[4].replace('\n', '')
+        line_name_array.append([start_num, mol_name])
     start += 1
 
+j = 0
 file_count = 0
-
-for i in range(len(start_list)):
-    with open(os.path.join(pdbqt_dir, file_list[i] + '.pdbqt'), 'w') as pdbqtFile:
+for i in range(len(line_name_array)):
+    with open(os.path.join(pdbqt_dir, line_name_array[i][1] + '.pdbqt'), 'w') as pdbqtFile:
         pass
-        if i < len(start_list) - 1:
-            for j in range(start_list[i] + 1, start_list[i+1] - 1):
+        if i < len(line_name_array) - 1:
+            for j in range(line_name_array[i][0] + 1, line_name_array[i+1][0] - 1):
                 pdbqtFile.write(content[j])
         else:
-            for j in range(start_list[i] + 1, len(content)):
+            for j in range(line_name_array[i][0] + 1, len(content)):
                 pdbqtFile.write(content[j])
 
-    file_count += 1
-
-print(file_count, 'files were successfully created.')
-
-
-
-
+    j += 1
 
 
 
