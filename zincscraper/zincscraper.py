@@ -4,12 +4,12 @@ import pandas as pd
 import datetime
 import pyodbc
 
-# server = 'jim-chem02.rgarrison.net\ZINC'
-# database = 'ZINCProd'
-# username = 'jason'
-# password = 'Jason123!'
-# cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
-# cursor = cnxn.cursor()
+server = 'jim-chem02.rgarrison.net\ZINC'
+database = 'ZINCProd'
+username = 'jason'
+password = 'Jason123!'
+cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
+cursor = cnxn.cursor()
 
 while True:
     csv_file = input('CSV file path: ')
@@ -38,6 +38,8 @@ for i in range(len(data)):
     r = requests.get(url)
     df_list = pd.read_html(r.text)  # this parses all the tables in webpages to a list
     first_table = df_list[0]
+    logp = first_table.loc[:, 'logP'][0]
+    mwt = first_table.loc[:, 'Mwt'][0]
 
     if 'pH range' in str(df_list):
         print('3D')
@@ -49,11 +51,17 @@ for i in range(len(data)):
         tpsa = 'null'
         rotbonds = 'null'
 
-    testarray.append([zinc_id, binding_affinity, first_table.loc[:, 'logP'][0],  first_table.loc[:, 'Mwt'][0], tpsa, rotbonds])
+    count = cursor.execute("""
+    INSERT INTO ZINCProd (zinc_id, binding_affinity, logp, mwt, tpsa, rotbonds) 
+    VALUES (?,?,?,?,?,?)""",
+    zinc_id, binding_affinity, logp, mwt, tpsa, rotbonds).rowcount
+    cnxn.commit()
+    print('Rows inserted: ' + str(count))
 
+    # testarray.append([zinc_id, binding_affinity, first_table.loc[:, 'logP'][0],  first_table.loc[:, 'Mwt'][0], tpsa, rotbonds])
 
-final_df = pd.DataFrame(testarray, columns=['ZINC ID', 'Binding affinity (kcal/mol)', 'logP', 'MW', 'tPSA', 'Rotatable bonds'])
-print(final_df.to_string())
+# final_df = pd.DataFrame(testarray, columns=['ZINC ID', 'Binding affinity (kcal/mol)', 'logP', 'MW', 'tPSA', 'Rotatable bonds'])
+# print(final_df.to_string())
 
 time_end = datetime.datetime.now()
 
