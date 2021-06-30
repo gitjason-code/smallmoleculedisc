@@ -1,2 +1,2 @@
-python pdbqtparser.py
+python pdbqt_splitter.py
 cmd /k

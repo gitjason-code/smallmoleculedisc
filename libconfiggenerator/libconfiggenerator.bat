@@ -1,2 +1,2 @@
-python newconfigassembler.py
+python libconfiggenerator.py
 cmd /k
