@@ -1,6 +1,8 @@
 import os
 import requests
 import pandas as pd
+import html5lib
+import bs4
 import datetime
 import pyodbc
 
@@ -23,19 +25,18 @@ while True:
     else:
         print('Please input the path of a CSV file.')
 
+
 time_start = datetime.datetime.now()
 
 data = pd.read_csv(csv_file)
 
 # testarray = []
 
-# cursor.execute("TRUNCATE TABLE ZINCProd.dbo.Prodmain")
-
 for i in range(len(data)):
     zinc_id = data.loc[i][0].split('__')[0]
     binding_affinity = data.loc[i][1]
 
-    url = 'https://zinc15.docking.org/substances/' + zinc_id
+    url = 'http://zinc15.docking.org/substances/' + zinc_id
     r = requests.get(url)
 
     df_list = pd.read_html(r.text)  # this parses all the tables in webpages to a list
@@ -75,6 +76,9 @@ for i in range(len(data)):
     WHERE row_num > 1;
     """)
     delete_dup.commit()
+
+    mol_num = i + 1
+    print(str(mol_num) + '/' + str(len(data)) + ' molecules added to database.')
 
     # testarray.append([zinc_id, binding_affinity, first_table.loc[:, 'logP'][0],  first_table.loc[:, 'Mwt'][0], tpsa, rotbonds])
 
