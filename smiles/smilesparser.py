@@ -2,7 +2,7 @@ import os
 import pandas as pd
 
 
-def path_input():
+def path_input():  # user input of csv file path
     global csv_file
     global f_name
     global f_ext
@@ -21,39 +21,36 @@ def path_input():
             continue
 
 
-def csv_converter():
+def csv_converter():  # reads csv file and extracts SMILES strings and molecule IDs
     global id_list
     global smiles_list
     global moles
+    global smiles_id_list
 
-    data = pd.read_csv(csv_file)
+    data = pd.read_csv(csv_file)  # reads .csv file
 
     i = 0
-    id_list = []
-    smiles_list = []
+    smiles_id_list = []
 
     for smiles in data.loc[:, 'SMILES']:
         try:
             if len(str(smiles)) > 1:
-                smiles_list.append(smiles.split(' ')[0])
-                id_list.append(data.loc[:, 'MolPort Id'][i])
+                smiles_id_list.append([smiles.split(' ')[0], data.loc[:, 'MolPort Id'][i]])  # links smiles string and molecule ID in array
             else:
-                print(data.loc[:, 'MolPort Id'][i] + ' does not meet requirements for SMILES string.')
+                print(data.loc[:, 'MolPort Id'][i] + ' does not meet requirements for SMILES string.')  # excludes smiles strings that are too short
         except AttributeError:
-            print(data.loc[:, 'MolPort Id'][i] + ' does not meet requirements for SMILES string.')
+            print(data.loc[:, 'MolPort Id'][i] + ' does not meet requirements for SMILES string.')  # excludes non-SMILES strings
 
         i += 1
-
-    moles = dict(zip(id_list, smiles_list))
 
     smiles_writer()
 
 
-def smiles_writer():
+def smiles_writer():  # creates .smi file
     with open(os.path.join(smiles_path, f_name + '.smi'), 'w') as smiles_file:
         pass
-        for molport_id in moles:
-            smiles_file.write(moles[molport_id] + ' ' + molport_id + '\n')
+        for i in range(len(smiles_id_list)):
+            smiles_file.write(smiles_id_list[i][0] + ' ' + smiles_id_list[i][1] + '\n')
 
     print('SMILES file successfully created.')
 

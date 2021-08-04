@@ -6,7 +6,7 @@ import bs4
 import datetime
 import pyodbc
 
-conn = pyodbc.connect('Driver={SQL Server};'
+conn = pyodbc.connect('Driver={SQL Server};'  # connects to SQL database
                       'Server=jim-chem02\zinc;'
                       'Database=ZINCProd;'
                       'Trusted_Connection=yes;'
@@ -15,7 +15,7 @@ conn = pyodbc.connect('Driver={SQL Server};'
 
 cursor = conn.cursor()
 
-while True:
+while True:  # prompts user for csv file path
     csv_file = input('CSV file path: ')
     csv_file = csv_file.strip('\"')
     f_name, f_ext = os.path.splitext(csv_file)
@@ -30,11 +30,9 @@ time_start = datetime.datetime.now()
 
 data = pd.read_csv(csv_file)
 
-# testarray = []
-
 failed_mols = []
 
-for i in range(len(data)):
+for i in range(len(data)):  # loops through molecules in csv file
     zinc_id = data.loc[i][0].split('__')[0]
     binding_affinity = data.loc[i][1]
 
@@ -42,13 +40,13 @@ for i in range(len(data)):
     r = requests.get(url)
 
     try:
-        df_list = pd.read_html(r.text)  # this parses all the tables in webpages to a list
+        df_list = pd.read_html(r.text)  # parses tables in html to list
         first_table = df_list[0]
 
         logp = first_table.loc[:, 'logP'][0]
         mwt = first_table.loc[:, 'Mwt'][0]
 
-        if 'pH range' in str(df_list):
+        if 'pH range' in str(df_list):  # checks whether 3D molecule data is available
             third_table = df_list[2]
             tpsa = third_table.loc[:, 'tPSA Å²'][0]
             rotbonds = third_table.loc[:, 'Rotatablebonds'][0]
@@ -60,7 +58,7 @@ for i in range(len(data)):
         INSERT INTO ZINCProd.dbo.Prodmain (zincid, bindaff, logp, mwt, tpsa, rotbonds) 
         VALUES (?,?,?,?,?,?)""",
         str(zinc_id), str(binding_affinity), str(logp), str(mwt), str(tpsa), str(rotbonds)).rowcount
-        conn.commit()
+        conn.commit()  # inserts molecule data from webpage to SQL database
 
         delete_dup = cursor.execute("""
         WITH cte AS (
@@ -78,18 +76,14 @@ for i in range(len(data)):
         DELETE FROM cte
         WHERE row_num > 1;
         """)
-        delete_dup.commit()
+        delete_dup.commit()  # finds and deletes duplicate molecules in database
 
         mol_num = i + 1
         print(str(mol_num) + '/' + str(len(data)) + ' molecules added to database.')
 
-        # testarray.append([zinc_id, binding_affinity, first_table.loc[:, 'logP'][0],  first_table.loc[:, 'Mwt'][0], tpsa, rotbonds])
     except:
         print(zinc_id + ' could not be added to database.')
         failed_mols.append(zinc_id)
-
-# final_df = pd.DataFrame(testarray, columns=['ZINC ID', 'Binding affinity (kcal/mol)', 'logP', 'MW', 'tPSA', 'Rotatable bonds'])
-# print(final_df.to_string())
 
 time_end = datetime.datetime.now()
 
