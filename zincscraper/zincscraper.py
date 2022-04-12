@@ -6,12 +6,12 @@ import bs4
 import datetime
 import pyodbc
 
-conn = pyodbc.connect('Driver={SQL Server};'  # connects to SQL database
-                      'Server=jim-chem02\zinc;'
-                      'Database=ZINCProd;'
+conn = pyodbc.connect('Driver={};'  # connects to SQL database
+                      'Server='
+                      'Database=;'
                       'Trusted_Connection=yes;'
-                      'username=jason;'
-                      'password=Jason123!;')
+                      'username=;'
+                      'password=;')
 
 cursor = conn.cursor()
 

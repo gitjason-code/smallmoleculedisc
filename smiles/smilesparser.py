@@ -1,60 +1,52 @@
 import os
 import pandas as pd
+import argparse
 
 
-def path_input():  # user input of csv file path
-    global csv_file
-    global f_name
-    global f_ext
-    global smiles_path
-
-    while True:
-        csv_file = input('CSV file path: ')
-        csv_file = csv_file.strip('\"')
-        f_name, f_ext = os.path.splitext(csv_file)
-
-        if f_ext == '.csv':
-            smiles_path = os.path.dirname(csv_file)
-            break
-        else:
-            print('Please input the path of a CSV file.')
-            continue
+def smiles_filter(smiles):
+    smiles = smiles.split(' ')[0].strip()
+    if len(smiles) > 1 and smiles != 'nan':
+        return smiles
 
 
-def csv_converter():  # reads csv file and extracts SMILES strings and molecule IDs
-    global id_list
-    global smiles_list
-    global moles
-    global smiles_id_list
+def path_input(smi_path):  # user input of csv file path
+    smi_path = smi_path.strip('\"')
+    f_ext = os.path.splitext(smi_path)[1]
 
-    data = pd.read_csv(csv_file)  # reads .csv file
+    if os.path.isfile(smi_path) and f_ext == '.csv':
+        smi_dir = os.path.dirname(smi_path)
+    else:
+        print('Please input a valid path to .csv file')
+        smi_path = input()
+        path_input(smi_path)
 
-    i = 0
-    smiles_id_list = []
-
-    for smiles in data.loc[:, 'SMILES']:
-        try:
-            if len(str(smiles)) > 1:
-                smiles_id_list.append([smiles.split(' ')[0], data.loc[:, 'MolPort Id'][i]])  # links smiles string and molecule ID in array
-            else:
-                print(data.loc[:, 'MolPort Id'][i] + ' does not meet requirements for SMILES string.')  # excludes smiles strings that are too short
-        except AttributeError:
-            print(data.loc[:, 'MolPort Id'][i] + ' does not meet requirements for SMILES string.')  # excludes non-SMILES strings
-
-        i += 1
-
-    smiles_writer()
+    return smi_path, smi_dir
 
 
-def smiles_writer():  # creates .smi file
-    with open(os.path.join(smiles_path, f_name + '.smi'), 'w') as smiles_file:
-        pass
-        for i in range(len(smiles_id_list)):
-            smiles_file.write(smiles_id_list[i][0] + ' ' + smiles_id_list[i][1] + '\n')
+def find_smiles(smi_path):  # reads csv file and extracts SMILES strings and molecule IDs
+    smiles_df = pd.read_csv(smi_path)  # reads .csv file
+    smiles_df['SMILES'] = smiles_df['SMILES'].astype(str)
+    smiles_df['SMILES'] = smiles_df['SMILES'].map(smiles_filter)
+    smiles_df.dropna(subset=['SMILES'], inplace=True)
+    smiles_dict = dict(zip(smiles_df['MolPort Id'], smiles_df['SMILES']))
 
-    print('SMILES file successfully created.')
+    return smiles_dict
 
 
-path_input()
-csv_converter()
+def smiles_writer(smi_dir, smiles_dict):  # creates .smi file
+    with open(os.path.join(smi_dir, 'smiles_out.smi'), 'w') as smiles_file:
+        for molport_id in smiles_dict:
+            smiles_file.write(smiles_dict[molport_id] + ' ' + molport_id + '\n')
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p',
+                        '--path',
+                        help="Path of Molport library .csv export")
+    args = parser.parse_args()
+
+    smi_path, smi_dir = path_input(args.path)
+    smiles_dict = find_smiles(smi_path)
+    smiles_writer(smi_dir, smiles_dict)
 

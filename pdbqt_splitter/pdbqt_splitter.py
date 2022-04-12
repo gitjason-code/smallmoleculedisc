@@ -1,42 +1,51 @@
 import os
+import argparse
 
-while True:  # user input of multi-model pdbqt file
-    pdbqt_file = input('PDBQT file path: ')
-    pdbqt_file = pdbqt_file.strip('\"')
-    f_name, f_ext = os.path.splitext(pdbqt_file)
 
-    if f_ext == '.pdbqt':
-        pdbqt_dir = os.path.dirname(pdbqt_file)
-        break
+def path_validation(pdbqt_path):  # validates multi-model .pdbqt file path
+    pdbqt_path = pdbqt_path.strip('\"')
+    f_ext = os.path.splitext(pdbqt_path)[1]
+
+    if os.path.isfile(pdbqt_path) and f_ext == '.pdbqt':
+        return pdbqt_path, os.path.dirname(pdbqt_path)
     else:
         print('Please input the path of a multi-model pqbqt file.')
+        pdbqt_path = input()
+        path_validation(pdbqt_path)
 
-with open(pdbqt_file) as f:  # reads pdbqt file
-    content = f.readlines()
 
-start = 0  # line number of start of each pdbqt model
-line_name_array = []
+def find_files(pdbqt_path):  # Finds compound name and start index of each .pdbqt file in batch
+    with open(pdbqt_path) as f:
+        lines = f.readlines()
 
-for line in content:
-    if 'MODEL' in line:
-        start_num = start
-    elif 'Name' in line:
-        mol_name = line.split(' ')[4].replace('\n', '')  # defines model name and removes \n from string
-        line_name_array.append([start_num, mol_name])  # links starting line number and model name in array
-    start += 1
+    line_name_array = []
+    for index, line in enumerate(lines):
+        if 'Name' in line:
+            mol_name = line.split(' ')[4].replace('\n', '')
+            line_name_array.append([index-1, mol_name])
 
-j = 0
-for i in range(len(line_name_array)):
-    with open(os.path.join(pdbqt_dir, line_name_array[i][1] + '.pdbqt'), 'w') as pdbqtFile:  # creates new pdbqt file for each item in line_num_array
-        pass
-        if i < len(line_name_array) - 1:
-            for j in range(line_name_array[i][0] + 1, line_name_array[i+1][0] - 1):
-                pdbqtFile.write(content[j])
-        else:
-            for j in range(line_name_array[i][0] + 1, len(content)):
-                pdbqtFile.write(content[j])
+    return line_name_array, lines
 
-    j += 1
+
+def file_write(file_info, out_dir, multi_pdbqt):  # writes individual .pdbqt files from batch
+    for i in range(len(file_info)):
+        with open(os.path.join(out_dir, file_info[i][1] + '.pdbqt'), 'w') as parsed_file:
+            if i < len(file_info) - 1:
+                for j in range(file_info[i][0] + 1, file_info[i+1][0] - 1):
+                    parsed_file.write(multi_pdbqt[j])
+            else:
+                for j in range(file_info[i][0] + 1, len(multi_pdbqt)):
+                    parsed_file.write(multi_pdbqt[j])
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--path', help="Multi-model .pdbqt file")
+    args = parser.parse_args()
+
+    pdbqt_path, pdbqt_dir = path_validation(args.path)
+    file_start, content = find_files(pdbqt_path)
+    file_write(file_start, pdbqt_dir, content)
 
 
 
